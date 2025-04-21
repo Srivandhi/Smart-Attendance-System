@@ -1,27 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Card Holder</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance System</title>
 </head>
 <body>
-  <h1>Enter Card Holder's Name</h1>
-  <form id="cardForm">
-    <input type="text" id="name" placeholder="Enter Name" required />
-    <button type="submit">Submit</button>
-  </form>
-  <p id="response"></p>
+    <h1>Attendance Form</h1>
+    <form id="attendance-form">
+        <label for="name">Enter Name:</label>
+        <input type="text" id="name" required />
+        <button type="submit">Submit</button>
+    </form>
 
-  <script>
-    const form = document.getElementById("cardForm");
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const name = document.getElementById("name").value;
-      const res = await fetch("/api/card?name=" + encodeURIComponent(name));
-      const text = await res.text();
-      document.getElementById("response").innerText = text;
-    });
-  </script>
+    <div id="result"></div>
+
+    <script>
+        const form = document.getElementById('attendance-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+
+            try {
+                const response = await fetch('/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name })
+                });
+
+                const result = await response.text();
+                document.getElementById('result').innerText = result;
+            } catch (error) {
+                document.getElementById('result').innerText = 'Error submitting form';
+            }
+        });
+    </script>
 </body>
 </html>
