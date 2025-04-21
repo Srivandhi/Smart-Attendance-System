@@ -1,26 +1,45 @@
-const express = require("express");
-const path = require("path");
+const express = require('express');
 const app = express();
+const mqtt = require('mqtt');
 
-const timezone = "Asia/Kolkata";
+// Connect to the MQTT broker (e.g., HiveMQ public broker)
+const mqttClient = mqtt.connect('mqtt://broker.hivemq.com');
+
+mqttClient.on('connect', () => {
+    console.log('Connected to MQTT broker');
+});
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Serve frontend
+app.use(express.static('public'));
 
-app.get("/api/card", (req, res) => {
-    const name = req.query.name;
+app.post('/submit', (req, res) => {
+    const { name } = req.body;
+
     if (!name) {
-        return res.status(400).send("Missing name");
+        return res.status(400).send('Name is required');
     }
 
-    const now = new Date();
-    const timeString = now.toLocaleTimeString("en-US", { timeZone: timezone });
-    const dateString = now.toLocaleDateString("en-US", { timeZone: timezone });
+    // Get the current date and time
+    const date = new Date();
+    const timeString = date.toLocaleTimeString('en-US', { timeZone: 'Asia/Kolkata' });
+    const dateString = date.toISOString();
 
-    res.send(`Card holder name "${name}" is stored on ${dateString} at ${timeString}`);
+    // Publish the message to MQTT broker
+    const message = JSON.stringify({
+        name: name,
+        date: dateString,
+        time: timeString
+    });
+
+    mqttClient.publish('card-info', message, (err) => {
+        if (err) {
+            return res.status(500).send('Failed to publish message');
+        }
+        res.status(200).send('Card holder data submitted successfully');
+    });
 });
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Server is running on port ${port}`);
 });
