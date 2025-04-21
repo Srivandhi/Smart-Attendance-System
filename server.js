@@ -1,17 +1,20 @@
 const express = require('express');
-const app = express();
 const mqtt = require('mqtt');
+const app = express();
 
-// Connect to the MQTT broker (e.g., HiveMQ public broker)
-const mqttClient = mqtt.connect('mqtt://broker.hivemq.com');
+// Connect to the MQTT broker using WebSocket over SSL/TLS (wss://)
+const mqttClient = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
 
+// Event listener when connected to the MQTT broker
 mqttClient.on('connect', () => {
-    console.log('Connected to MQTT broker');
+    console.log('Connected to MQTT broker via WebSocket (wss://)');
 });
 
+// Middleware to parse JSON request bodies
 app.use(express.json());
 app.use(express.static('public'));
 
+// Handle POST request to submit card info
 app.post('/submit', (req, res) => {
     const { name } = req.body;
 
@@ -39,6 +42,7 @@ app.post('/submit', (req, res) => {
     });
 });
 
+// Start the server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
